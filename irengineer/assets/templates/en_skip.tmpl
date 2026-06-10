@@ -1,0 +1,1 @@
+{{if eq .SkipReason "track_mismatch"}}Reference lap does not match this track.{{else if eq .SkipReason "invalid_lap_time"}}Invalid lap, analysis skipped.{{else if eq .SkipReason "too_few_samples"}}Not enough samples, skipped.{{else if eq .SkipReason "pit_stop"}}Pit lap skipped.{{else if eq .SkipReason "short_lap"}}Lap too short, skipped.{{else}}Lap skipped.{{end}}
