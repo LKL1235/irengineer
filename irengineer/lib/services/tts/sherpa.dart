@@ -15,7 +15,7 @@ class SherpaSpeaker implements Speaker {
     required this.dataDir,
     String? cacheDir,
     this.playWav,
-  }) : cacheDir = cacheDir ?? p.join(Directory.systemTemp.path, 'iracing-coach-tts-cache');
+  }) : cacheDir = cacheDir ?? p.join(Directory.systemTemp.path, 'irengineer-tts-cache');
 
   final String bin;
   final String model;

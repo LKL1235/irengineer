@@ -25,7 +25,7 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  final ttsRoot = p.join(localAppData, 'iracing-coach', 'tts');
+  final ttsRoot = p.join(localAppData, 'irengineer', 'tts');
   final ttsDir = Directory(ttsRoot);
   if (!ttsDir.existsSync()) {
     stdout.writeln('No TTS install at $ttsRoot — skip Sherpa copy.');
@@ -37,7 +37,6 @@ Future<void> main(List<String> args) async {
   }
 
   stdout.writeln('Bundle complete: ${release.path}');
-  stdout.writeln('Note: coach.exe is NOT included (pure Dart Flutter app).');
 }
 
 Future<void> _copyTree(Directory src, Directory dest) async {

@@ -2,7 +2,7 @@
 title: ValidateTrackMatch compared incompatible lap fingerprints (CSV coverage vs SDK distance)
 date: 2026-06-09
 category: logic-errors
-module: iracing-coach
+module: irengineer
 problem_type: logic_error
 component: assistant
 severity: critical
@@ -14,7 +14,7 @@ symptoms:
 root_cause: logic_error
 resolution_type: code_fix
 tags:
-  - iracing-coach
+  - irengineer
   - validate-track-match
   - track-fingerprint
   - csv-reference
@@ -29,7 +29,7 @@ related_components:
 
 ## Problem
 
-`ValidateTrackMatch` in `iracing-coach/internal/ref/csv.go` compared reference and candidate laps using a single `fingerprint()` helper that returned different physical quantities depending on whether `LapTimeSec` was set. CSV reference laps (no lap time) produced `CoveragePct` ≈ 1.0, while live SDK laps produced `LapTimeSec × avgSpeed` ≈ thousands of meters. Every live lap was rejected as a track mismatch, so the coach never ran delta analysis.
+`validateTrackMatch` in `irengineer/lib/domain/ref/track_match.dart` compared reference and candidate laps using a single `fingerprint()` helper that returned different physical quantities depending on whether `LapTimeSec` was set. CSV reference laps (no lap time) produced `CoveragePct` ≈ 1.0, while live SDK laps produced `LapTimeSec × avgSpeed` ≈ thousands of meters. Every live lap was rejected as a track mismatch, so the coach never ran delta analysis.
 
 ## Symptoms
 

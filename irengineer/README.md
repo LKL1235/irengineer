@@ -1,6 +1,6 @@
 # irengineer
 
-Windows 桌面端 iRacing 教练与本地复盘工具。单进程 Flutter 应用，算法与 UI 均为 **纯 Dart**，通过 `package:win32` 直接读取 iRacing 共享内存，**不调用** `coach.exe` 或任何 Go 动态库。
+Windows 桌面端 iRacing 教练与本地复盘工具。单进程 Flutter 应用，算法与 UI 均为 **纯 Dart**，通过 `package:win32` 直接读取 iRacing 共享内存。
 
 仓库：[https://github.com/LKL1235/irengineer](https://github.com/LKL1235/irengineer)
 
@@ -33,7 +33,7 @@ flutter build windows --release
 dart run tool/bundle_release.dart
 ```
 
-脚本会将 `%LocalAppData%/iracing-coach/tts` 下已安装的 Sherpa 资源复制进 Release 目录。
+脚本会将 `%LocalAppData%/irengineer/tts` 下已安装的 Sherpa 资源复制进 Release 目录。
 
 ---
 
@@ -101,7 +101,7 @@ IrSdkClient（worker Isolate 60Hz 轮询）→ LapBuffer 累积样本
 | 云端 LLM | ⚙️ | `CloudClient` + 数字校验已接入 `CoachLoop`；**设置页无 UI**，需编辑 `settings.json` |
 | 云端配置项 | | `deep_explain_enabled`、`cloud_base_url`、`cloud_api_key`、`cloud_model`、`cloud_timeout_ms` |
 
-云端 API Key 保存在 `%LocalAppData%/iracing-coach/settings.json`，勿提交到版本库。
+云端 API Key 保存在 `%LocalAppData%/irengineer/settings.json`，勿提交到版本库。
 
 ### 状态管理
 
@@ -109,14 +109,14 @@ IrSdkClient（worker Isolate 60Hz 轮询）→ LapBuffer 累积样本
 
 ### 用户数据路径
 
-设置与 TTS 资源沿用 `%LocalAppData%/iracing-coach/`，与旧版 Go 教练兼容：
+设置与 TTS 资源保存在 `%LocalAppData%/irengineer/`：
 
 - `settings.json` — 参考圈路径、TTS 配置、云端 API 等
 - `tts/` — Sherpa 运行时与语音模型
 
 ### 测试策略
 
-- `test/domain/` — golden 测试，数值对齐 Go 参考实现
+- `test/domain/` — golden 测试，对照 `data/` 样本
 - `test/platform/`、`test/services/` — LapBuffer、CsvProvider、CoachLoop mock
 - `test/features/` — 复盘控制器状态机
 - 实机清单：iRacing 连接、TTS 安装播报、托盘退出无僵尸进程

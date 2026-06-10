@@ -52,7 +52,7 @@ final _unmapViewOfFile = _kernel32.lookupFunction<_UnmapViewOfFileNative, _Unmap
   'UnmapViewOfFile',
 );
 
-/// Reads iRacing shared memory on Windows (Dart port aligned with Go client_windows.go).
+/// Reads iRacing shared memory on Windows via win32.
 class IrSdkClient implements TelemetryProvider {
   IrSdkClient._();
 

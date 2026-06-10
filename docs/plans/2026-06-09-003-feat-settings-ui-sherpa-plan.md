@@ -12,7 +12,7 @@ depth: standard
 
 ## Summary
 
-用户不再编辑 `coach.yaml`。所有可调项通过 **本地设置 UI** 管理；运行时从 `%LocalAppData%/iracing-coach/settings.json` 读取（程序自动写入，非面向用户的手写配置）。**首次启动**使用内置默认值，仅引导用户完成两件必做项：选择参考圈 CSV、一键安装 TTS（Sherpa + 中文 medium 模型）。`coach.exe` 默认后台常驻采集；设置页通过托盘菜单或 `--settings` 打开。
+用户不再编辑 `coach.yaml`。所有可调项通过 **本地设置 UI** 管理；运行时从 `%LocalAppData%/irengineer/settings.json` 读取（程序自动写入，非面向用户的手写配置）。**首次启动**使用内置默认值，仅引导用户完成两件必做项：选择参考圈 CSV、一键安装 TTS（Sherpa + 中文 medium 模型）。`iREngineer` 默认后台常驻采集；设置页通过托盘菜单或 `--settings` 打开。
 
 ## Problem Frame
 
@@ -24,7 +24,7 @@ depth: standard
 
 | ID | 要求（实现后必须为真） |
 |----|------------------------|
-| UI1 | 不存在用户必须维护的 `coach.yaml`；`coach.exe --config` 不再为常规路径 |
+| UI1 | 不存在用户必须维护的 `coach.yaml`；`iREngineer --config` 不再为常规路径 |
 | UI2 | 所有可调设置可在设置 UI 中查看与修改 |
 | UI3 | 首次启动：未初始化时应用 **代码内置 Defaults**，仅阻塞「参考圈 CSV」与「TTS 就绪」两项 |
 | UI4 | 设置持久化为 `settings.json`（AppData），由程序读写；损坏时可重置为默认 |
@@ -39,10 +39,10 @@ depth: standard
 ## Key Technical Decisions
 
 **KTD-UI1: 持久化 = JSON SettingsStore，非 YAML**  
-路径 `%LocalAppData%/iracing-coach/settings.json`。Rationale: 用户不碰文件；仍须跨会话保存，JSON 便于 UI 与 Go struct 双向绑定。
+路径 `%LocalAppData%/irengineer/settings.json`。Rationale: 用户不碰文件；仍须跨会话保存，JSON 便于 UI 与 Go struct 双向绑定。
 
 **KTD-UI2: 设置 UI = 本机 HTTP + 内嵌静态页**  
-`coach.exe` 在 `127.0.0.1:固定端口`（如 18787）提供设置 API 与单页 UI；`--settings` 或托盘项用 `start http://127.0.0.1:18787` 打开浏览器。Rationale: 无 Electron/Wails 重量；Go 单二进制；比 Win32 表单开发快。端口仅绑定 loopback。
+`iREngineer` 在 `127.0.0.1:固定端口`（如 18787）提供设置 API 与单页 UI；`--settings` 或托盘项用 `start http://127.0.0.1:18787` 打开浏览器。Rationale: 无 Electron/Wails 重量；Go 单二进制；比 Win32 表单开发快。端口仅绑定 loopback。
 
 **KTD-UI3: Defaults 在代码中定义**  
 `internal/settings/defaults.go`：`language=zh`、`sdk_poll_hz=60`、`max_line_speech_sec=20`、`tts_engine=sherpa`、TTS 资产默认目录、`deep_explain_enabled=false` 等。首次无 `settings.json` 时等价于 Defaults + `initialized=false`。
@@ -51,7 +51,7 @@ depth: standard
 教练主循环仅在 `reference_csv` 有效且 TTS 校验通过时启动；否则托盘提示「打开设置完成初始配置」。不在 CLI 打印 YAML 路径错误。
 
 **KTD-UI5: TTS = Sherpa CLI（同 002 计划）**  
-资产目录 `%LocalAppData%/iracing-coach/tts/`；UI「安装语音」调用与 `install-tts` 相同逻辑（可保留 PowerShell 作 CI 备用，非用户主路径）。
+资产目录 `%LocalAppData%/irengineer/tts/`；UI「安装语音」调用与 `install-tts` 相同逻辑（可保留 PowerShell 作 CI 备用，非用户主路径）。
 
 **KTD-UI6: 高级项折叠**  
 云端 LLM、SDK 采样率、无效圈阈值等放在设置页「高级」区，默认折叠，初值用 Defaults。
@@ -69,7 +69,7 @@ flowchart TB
     TRAY[托盘菜单]
     BROWSER[浏览器设置页]
   end
-  subgraph coach [coach.exe]
+  subgraph coach [iREngineer]
     MAIN[主循环 / SDK / 教练]
     API[settings HTTP :18787]
     STORE[(settings.json)]
@@ -90,7 +90,7 @@ flowchart TB
 
 **首次启动时序**
 
-1. 启动 `coach.exe` → 加载 Store，无文件则 `Defaults`  
+1. 启动 `iREngineer` → 加载 Store，无文件则 `Defaults`  
 2. 注册托盘；若未就绪 → 气泡提示「请完成设置」并可选自动打开设置页  
 3. 用户在 UI 选择参考圈 CSV → 点击「安装语音引擎」→ 进度条 → 保存 Store  
 4. `ReadyGate` 通过 → 主循环与圈末教练开始
@@ -100,7 +100,7 @@ flowchart TB
 ## Output Structure
 
 ```text
-iracing-coach/
+irengineer/
 ├── cmd/coach/main.go              # 去掉 --config；--settings；托盘启动
 ├── internal/
 │   ├── settings/
@@ -194,7 +194,7 @@ iracing-coach/
 **Requirements:** UI1, T6（原 Piper 清理合并）。  
 **Dependencies:** U2, U3, U4。  
 **Files:** 删除 `coach.yaml`, `coach.yaml.example`, `internal/config/*`；更新 `README.md`, `go.mod`  
-**Approach:** README 改为「双击 coach.exe → 托盘 → 设置」；开发文档说明 `settings.json` 仅调试重置用。  
+**Approach:** README 改为「双击 iREngineer → 托盘 → 设置」；开发文档说明 `settings.json` 仅调试重置用。  
 **Verification:** 仓库无 `coach.yaml`；`go build` 无 yaml 依赖。
 
 ---

@@ -12,7 +12,7 @@ depth: standard
 
 ## Summary
 
-将 `iracing-coach` 默认 TTS 从已不可维护的 Piper 预编译二进制，迁移为 **Sherpa-ONNX 离线 CLI + Piper 兼容中文 medium 模型** 的外部依赖模式。保持 `Speaker` 接口与子进程隔离；提供 PowerShell 一键安装脚本；可选 Windows SAPI 应急降级。不把模型嵌入 `coach.exe`。
+将 `iracing-coach` 默认 TTS 从已不可维护的 Piper 预编译二进制，迁移为 **Sherpa-ONNX 离线 CLI + Piper 兼容中文 medium 模型** 的外部依赖模式。保持 `Speaker` 接口与子进程隔离；提供 PowerShell 一键安装脚本；可选 Windows SAPI 应急降级。不把模型嵌入 `iREngineer`。
 
 ## Problem Frame
 
@@ -43,7 +43,7 @@ depth: standard
 **KTD-T2: 默认模型 `vits-piper-zh_CN-huayan-medium`**  
 自 HuggingFace `csukuangfj/vits-piper-zh_CN-huayan-medium`（及 `tokens.txt`、espeak 数据）。Rationale: 用户优先级 1=自然度；x_low 仅作高级用户可选。
 
-**KTD-T3: 资产目录 `%LocalAppData%/iracing-coach/tts/`**  
+**KTD-T3: 资产目录 `%LocalAppData%/irengineer/tts/`**  
 安装脚本与 coach 默认在此查找 `bin/`、`models/`、`espeak-ng-data/`。Rationale: 不污染 PATH、UI 一键安装目标明确。
 
 **KTD-T4: 配置字段迁移**  
@@ -64,7 +64,7 @@ depth: standard
 
 ```mermaid
 flowchart LR
-  subgraph coach [coach.exe]
+  subgraph coach [iREngineer]
     Q[SpeechQueue]
     SP[Speaker factory]
   end
@@ -92,7 +92,7 @@ flowchart LR
 ## Output Structure
 
 ```text
-iracing-coach/
+irengineer/
 ├── scripts/
 │   └── install-tts.ps1          # 下载 Sherpa + medium 模型 + espeak data
 ├── internal/
@@ -118,7 +118,7 @@ iracing-coach/
 **Requirements:** T2, T4, KTD-T4, KTD-T5。  
 **Dependencies:** 无。  
 **Files:** `internal/config/config.go`, `internal/config/config_test.go`, `internal/tts/speaker.go`  
-**Approach:** `tts_engine` 枚举 `sherpa`|`sapi`；默认 `sherpa`；`DefaultTTSPaths()` 指向 `%LocalAppData%/iracing-coach/tts/`；`piper_*` 兼容映射。  
+**Approach:** `tts_engine` 枚举 `sherpa`|`sapi`；默认 `sherpa`；`DefaultTTSPaths()` 指向 `%LocalAppData%/irengineer/tts/`；`piper_*` 兼容映射。  
 **Test scenarios:**
 - Happy: 合法 sherpa 路径通过 Validate  
 - Edge: 仅旧 `piper_bin` 字段仍可加载  
@@ -150,11 +150,11 @@ iracing-coach/
 **Requirements:** T5, T6, KTD-T2, KTD-T3。  
 **Dependencies:** 无（可与 U2 并行）。  
 **Files:** `scripts/install-tts.ps1`, `coach.yaml.example`  
-**Approach:** 下载固定版本 Sherpa win x64 zip、huayan-medium onnx+tokens、espeak-ng-data；解压到 `%LocalAppData%/iracing-coach/tts/`；打印或合并配置。  
+**Approach:** 下载固定版本 Sherpa win x64 zip、huayan-medium onnx+tokens、espeak-ng-data；解压到 `%LocalAppData%/irengineer/tts/`；打印或合并配置。  
 **Test scenarios:**
 - Happy: 脚本在干净目录执行后 `Test-Path` 三件套为真  
 - Error: 网络失败 → 非零退出与明确消息  
-**Verification:** 手动在 Windows 跑脚本后 `coach.exe` 启动无 TTS 校验错误。
+**Verification:** 手动在 Windows 跑脚本后 `iREngineer` 启动无 TTS 校验错误。
 
 ---
 
@@ -206,7 +206,7 @@ iracing-coach/
 **Outside**
 
 - 云 TTS 默认化  
-- 嵌入模型进 coach.exe
+- 嵌入模型进 iREngineer
 
 ---
 

@@ -2,16 +2,16 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-/// Returns `%LocalAppData%/iracing-coach` (or user config fallback).
+/// Returns `%LocalAppData%/irengineer` (or user config fallback).
 String dataRoot() {
   final local = Platform.environment['LOCALAPPDATA'];
   if (local != null && local.isNotEmpty) {
-    return p.join(local, 'iracing-coach');
+    return p.join(local, 'irengineer');
   }
   final home = Platform.environment['USERPROFILE'] ??
       Platform.environment['HOME'] ??
       Directory.current.path;
-  return p.join(home, '.config', 'iracing-coach');
+  return p.join(home, '.config', 'irengineer');
 }
 
 /// JSON settings path under [dataRoot].

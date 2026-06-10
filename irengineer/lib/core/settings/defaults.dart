@@ -12,7 +12,7 @@ const defaultLapInvalidMin = 100;
 const defaultCloudTimeoutMs = 8000;
 const defaultSettingsPort = 18787;
 
-/// Factory settings for a new installation (aligned with Go `settings.Default`).
+/// Factory settings for a new installation.
 AppSettings defaultSettings() {
   final ttsRoot = defaultTtsRoot();
   final modelDir =

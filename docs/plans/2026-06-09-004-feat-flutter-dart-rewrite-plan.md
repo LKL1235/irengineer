@@ -12,11 +12,11 @@ depth: deep
 
 ## Summary
 
-在仓库根目录新建 `iracing_coach/` Flutter Desktop（Windows）应用，**全量 Dart 重写**现有 `iracing-coach/` 全部业务能力：Garage 61 式离线 CSV 双圈分析、iRacing SDK 实时采集、圈末语音教练、Sherpa TTS、系统托盘与发布打包。**运行时零 Go 依赖**——不调用 `coach.exe`、不加载 Go 动态库、不用 FFI 桥接任何现有 Go 模块；`iracing-coach/` 仅作移植参照与 golden 对照，功能对等后归档。
+在仓库根目录新建 `irengineer/` Flutter Desktop（Windows）应用，**全量 Dart 实现**：Garage 61 式离线 CSV 双圈分析、iRacing SDK 实时采集、圈末语音教练、Sherpa TTS、系统托盘与发布打包。
 
 ## Problem Frame
 
-现有 `iracing-coach/` 已实现 `delta.Analyze`、CSV 参考圈、规则教练与 Sherpa TTS，但**无可视化分析 UI**，复盘依赖 Garage 61 上传等待；设置 UI 为 loopback HTTP + 内嵌静态页（见 `docs/plans/2026-06-09-003-feat-settings-ui-sherpa-plan.md`），与「非 WebView 原生桌面体验」目标冲突。用户明确要求 **纯 Dart 单栈 + Flutter Desktop 单进程**，将分析、教练、设置统一为一个应用，并复用 `data/` 中 Garage 61 CSV 作为开发与验收样本。
+用户需要 **纯 Dart 单栈 + Flutter Desktop 单进程**，将分析、教练、设置统一为一个应用，并复用 `data/` 中 Garage 61 CSV 作为开发与验收样本。
 
 ---
 
@@ -29,26 +29,26 @@ depth: deep
 | R3 | **复盘模式**：支持导入多个 Garage 61 单圈 CSV；用户选定参考圈与对比圈；`ValidateTrackMatch` 失败时展示原因并禁止分析 |
 | R4 | **复盘模式**：双圈 trace 叠加（速度、刹车、油门、转向至少四通道）；累计 delta 曲线；弯道分段表（入弯/顶点/出弯损失）；GPS 折线地图叠层（无 Lat/Lon 时隐藏地图并提示） |
 | R5 | **复盘模式**：分析在 isolate 执行，UI 不阻塞；大文件解析显示加载状态 |
-| R6 | **练车模式**：Dart 实现的 `IrSdkClient`（经 `package:win32` 调 Windows 共享内存）约 60Hz 轮询，圈完成触发 Dart `CoachLoop` 分析（行为对齐原 Go，但逻辑全在 Dart） |
+| R6 | **练车模式**：Dart 实现的 `IrSdkClient`（经 `package:win32` 调 Windows 共享内存）约 60Hz 轮询，圈完成触发 Dart `CoachLoop` 分析 |
 | R7 | **练车模式**：圈末规则教练 + Sherpa 子进程 TTS + 语音队列打断；Race 追及段与可选云端 LLM 解释（对齐 origin R1–R15） |
-| R8 | `settings.json` 路径与字段兼容 `%LocalAppData%/iracing-coach/settings.json`；`ReadyGate` 仅阻塞练车模式，复盘模式可跳过 TTS 安装 |
-| R9 | 领域算法与 Go 版数值一致：`domain/` 包无 `flutter` 依赖，golden 测试对照 `iracing-coach/testdata/` 与 `data/` 样本 |
-| R10 | 发布物为单一 Flutter 构建产物 + Dart 实现的安装/捆绑逻辑；**不再发布** `iracing-coach/coach.exe` |
-| R11 | **运行时禁止**调用 `coach.exe`、Go c-shared/动态库、或任何 Go FFI 桥；SDK、教练循环、TTS、托盘、打包脚本均在 Dart/Flutter 内实现 |
-| R12 | 共享内存读取使用 Dart 生态的 `package:win32`（Dart→Windows API），**不是**「FFI 接入现有 Go SDK 模块」 |
+| R8 | `settings.json` 路径与字段兼容 `%LocalAppData%/irengineer/settings.json`；`ReadyGate` 仅阻塞练车模式，复盘模式可跳过 TTS 安装 |
+| R9 | `domain/` 包无 `flutter` 依赖，golden 测试对照 `data/` 样本 |
+| R10 | 发布物为单一 Flutter 构建产物 + Dart 实现的安装/捆绑逻辑 |
+| R11 | SDK、教练循环、TTS、托盘、打包脚本均在 Dart/Flutter 内实现 |
+| R12 | 共享内存读取使用 `package:win32`（Dart→Windows API） |
 
 ---
 
 ## Key Technical Decisions
 
-**KTD-0: 全量 Dart 移植，零 Go 运行时**  
-Rationale: 用户明确要求全量转 Dart，而非 FFI 接入现有 Go 的 SDK、语音教练、托盘或发布链路。所有业务能力在 `iracing_coach/` 内用 Dart 重写；Go 源码只读对照，不参与运行。
+**KTD-0: 全量 Dart 实现**  
+Rationale: 所有业务能力在 `irengineer/` 内用 Dart 实现。
 
-**KTD-1: 新建 `iracing_coach/` Flutter 工程，Go 模块标记为 legacy**  
-Rationale: ~4k LOC 逐包移植到 Dart；`iracing-coach/` 不并行演进、不作为 sidecar、不编译进 Flutter 产物。
+**KTD-1: 新建 `irengineer/` Flutter 工程**  
+Rationale: 单进程桌面应用，算法、平台绑定与 UI 统一在 Flutter 工程内。
 
 **KTD-2: 分层 `lib/domain/`（纯 Dart）+ `lib/platform/`（OS 绑定）+ `lib/features/`（UI）+ `lib/services/`（编排）**  
-Rationale: 算法可 `dart test` 独立验证；UI 与 60Hz 轮询解耦；**platform 层是 Dart 调 Windows API，不是调 Go**。
+Rationale: 算法可 `dart test` 独立验证；UI 与 60Hz 轮询解耦；platform 层是 Dart 调 Windows API。
 
 **KTD-3: iRacing SDK = Dart 重写 `IrSdkClient`（`package:win32` 调 `OpenFileMapping`）**  
 Rationale: 将 `internal/irsdk/client_windows.go` **算法与协议逻辑移植为 Dart 源码**；win32 仅是 Dart 访问 OS 的标准方式，与「FFI 接 Go」无关。须实现双缓冲与 `IRSDKDataValidEvent`（Go 版未做，Dart 版补齐）。
@@ -168,7 +168,7 @@ iracing_coach/
 ├── assets/icons/
 ├── pubspec.yaml
 └── windows/
-iracing-coach/          # legacy Go — 只读参照，U8 后归档
+irengineer/             # Flutter 主应用
 data/                   # 共享验收 CSV（不变）
 ```
 
@@ -193,7 +193,7 @@ data/                   # 共享验收 CSV（不变）
 
 **Approach:** `flutter create --platforms=windows`；`domain` 禁止 import `flutter`。`LapSeries` 字段对齐 `internal/lap/series.go`。
 
-**Patterns to follow:** `iracing-coach/internal/lap/series.go`
+**Patterns to follow:** `irengineer/lib/domain/lap/series.dart`
 
 **Test scenarios:**
 - 空序列 `trackLengthMeters` 返回 0
@@ -222,7 +222,7 @@ data/                   # 共享验收 CSV（不变）
 - `iracing_coach/test/domain/ref/track_match_test.dart`
 - `iracing_coach/test/domain/delta/engine_test.dart`
 - `iracing_coach/test/domain/delta/engine_repo_test.dart`
-- `iracing_coach/test/fixtures/`（从 `iracing-coach/testdata/` 复制）
+- `irengineer/test/fixtures/`
 
 **Approach:** 1:1 移植 `ref` 与 `delta` 包；`engine_repo_test` 使用 `data/` 中 Arnar vs Huang CSV（路径解析向上查找 repo `data/`，对标 `internal/testutil/data.go`）。
 
@@ -335,7 +335,7 @@ data/                   # 共享验收 CSV（不变）
 
 ### U6. Dart 移植 IrSdk + LapBuffer + CoachLoop
 
-**Goal:** **Dart 源码**实现 Windows 共享内存客户端、圈缓冲、练车主循环（零 Go 调用）。
+**Goal:** **Dart 源码**实现 Windows 共享内存客户端、圈缓冲、练车主循环。
 
 **Requirements:** R6, R7, R9, R11, R12
 
@@ -351,7 +351,7 @@ data/                   # 共享验收 CSV（不变）
 - `iracing_coach/test/platform/irsdk/csv_provider_test.dart`
 - `iracing_coach/test/services/coach_loop_test.dart`
 
-**Approach:** 将 `client_windows.go` / `lapbuffer.go` / `run.go` **逐行移植为 Dart**；`win32` 仅用于 `OpenFileMapping` 等 Win32 API。**禁止** `DynamicLibrary.open` 加载 Go 产物或调用 `coach.exe`。`CsvProvider` 供无 iRacing 时调试。
+**Approach:** `win32` 用于 `OpenFileMapping` 等 Win32 API；`CsvProvider` 供无 iRacing 时调试。
 
 **Test scenarios:**
 - `LapBuffer` 圈切换与样本累积
@@ -392,9 +392,9 @@ data/                   # 共享验收 CSV（不变）
 
 ---
 
-### U8. Dart 托盘/窗口、Dart 打包脚本与 Go 归档
+### U8. Dart 托盘/窗口与打包脚本
 
-**Goal:** **Dart/Flutter 实现**托盘与窗口生命周期、Release 打包与资源捆绑；Go 仅文档归档。
+**Goal:** **Dart/Flutter 实现**托盘与窗口生命周期、Release 打包与资源捆绑。
 
 **Requirements:** R1, R10, R11
 
@@ -406,17 +406,16 @@ data/                   # 共享验收 CSV（不变）
 - `iracing_coach/tool/bundle_release.dart`（Dart 打包：复制 Sherpa runtime、默认资源）
 - `iracing_coach/windows/runner/main.cpp`（仅 Flutter 模板；如需 `RunOnSeparateThread`）
 - `iracing_coach/README.md`
-- `iracing-coach/README.md`（legacy 声明）
 - 根 `README.md`
 
-**Approach:** `tray_manager` + `window_manager`（**替代** Go `getlantern/systray`，非包装 Go 托盘）。`tool/bundle_release.dart` **替代**任何 Go 发布脚本。禁止在打包物中包含 `coach.exe`。
+**Approach:** `tray_manager` + `window_manager`；`tool/bundle_release.dart` 复制 Sherpa 资源到 Release 目录。
 
 **Test scenarios:**
 - 窗口 X → 隐藏，托盘仍在
 - 托盘退出 → 进程结束
 - 练车播报中退出 → 无僵尸 sherpa 进程（手动）
 
-**Verification:** Release 构建在干净 Win10/11 安装运行；Go `coach.exe` 文档标明 deprecated。
+**Verification:** Release 构建在干净 Win10/11 安装运行。
 
 ---
 
@@ -442,15 +441,13 @@ data/                   # 共享验收 CSV（不变）
 
 ### Deferred to Follow-Up Work（仅实施顺序，均为 Dart 实现）
 
-- **Wave 1（U1–U5）:** 复盘模式先行验收（仍无 Go 运行时）
-- **Wave 2（U3、U6–U8）:** 练车、TTS、托盘、打包——**同一 Flutter 应用内 Dart 完成**，非后续「接入 Go」
+- **Wave 1（U1–U5）:** 复盘模式先行验收
+- **Wave 2（U3、U6–U8）:** 练车、TTS、托盘、打包——同一 Flutter 应用内完成
 
 ### Explicit non-goals（禁止方案）
 
-- Go FFI / c-shared / `DynamicLibrary` 加载 `iracing-coach` 产物
-- 与 `coach.exe` 并存或 subprocess 委托教练逻辑
-- 保留 Go HTTP 设置页或 WebView 壳
-- 「先 Flutter UI + Go 后端」混合架构
+- 保留 loopback HTTP 设置页或 WebView 壳
+- 双进程 sidecar 混合架构
 
 ### Outside this product's identity
 
@@ -477,9 +474,7 @@ data/                   # 共享验收 CSV（不变）
 
 | 问题 | 状态 |
 |------|------|
-| 全量 Dart vs Go FFI 桥接 | **已决：** 全量 Dart 移植；禁止运行时接 Go（R11） |
-| win32 是否等于「接 Go」 | **已决：** 否；R12 仅 Dart→Windows API，SDK 逻辑在 Dart 源码内 |
-| 旧 coach.exe 并存 | **已决：** Flutter 对等后退役（R10） |
+| win32 与 SDK 逻辑边界 | **已决：** R12 仅 Dart→Windows API，SDK 逻辑在 Dart 源码内 |
 | 复盘会话持久化 | **Deferred：** v1 不保存历史 |
 | Flutter pin 版本 | **实施时决：** 以 stable 为准，多机验证 #169178 |
 
@@ -498,16 +493,14 @@ U1 → U2 → U4 ─┬→ U5 (Phase A 复盘)
 
 | 方案 | 结论 |
 |------|------|
-| Flutter UI + Go FFI 保留 delta/irsdk/tts | **拒绝** — 用户要求全量 Dart，非接现有 Go |
-| Go sidecar + Dart UI（localhost/IPC） | **拒绝** — 双进程、非单栈 |
-| 仅复盘 Dart，练车继续 coach.exe | **拒绝** — R10/R11 要求单一 Flutter 产物 |
+| sidecar + Dart UI（localhost/IPC） | **拒绝** — 双进程、非单栈 |
 | 全量 Dart + `package:win32` 读共享内存 | **采纳** — OS 绑定不可避免，但 SDK **逻辑**在 Dart 内 |
 
 ---
 
 ## Sources & Research
 
-- 现有实现：`iracing-coach/internal/{delta,ref,coach,irsdk,tts,settings}`
+- 现有实现：`irengineer/lib/domain/`、`irengineer/lib/platform/`、`irengineer/lib/services/`
 - 产品词汇：`CONCEPTS.md`
 - 指纹回归：`docs/solutions/logic-errors/iracing-coach-track-fingerprint-mismatch.md`
 - 原教练需求：`docs/brainstorms/2026-06-09-iracing-lap-coach-requirements.md`
