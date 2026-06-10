@@ -16,8 +16,9 @@ Windows / Linux 桌面端 iRacing 教练与本地复盘工具。单进程 Flutte
 ### Linux（复盘 + Cloud Agent 验证）
 
 - Flutter stable（已启用 Linux 桌面）
-- 构建依赖（Ubuntu 示例）：`clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev`
-- 无 iRacing / Sherpa TTS / 系统托盘；练车 Tab 为占位说明页
+- 系统依赖由仓库 `.cursor/install.sh` 安装（见 `.cursor/environment.json`）
+- Cloud Agent VM 自带 `DISPLAY=:1`，无需 `xvfb-run`
+- 无 iRacing / Sherpa TTS；练车 Tab 为占位说明页
 
 ## 开发与测试
 
@@ -27,17 +28,18 @@ flutter pub get
 flutter run -d windows
 ```
 
-Linux 复盘：
+Linux 复盘（Cloud Agent / 有显示器的 Linux 桌面）：
 
 ```bash
-flutter run -d linux
-# 无物理显示器时（Cloud Agent）：
-xvfb-run -a flutter run -d linux
-```
+export PATH="/home/ubuntu/flutter/bin:$PATH"
+export LIBRARY_PATH="/usr/lib/gcc/x86_64-linux-gnu/13:${LIBRARY_PATH:-}"
+export CPLUS_INCLUDE_PATH="/usr/include/c++/13:/usr/include/x86_64-linux-gnu/c++/13"
 
-```bash
+cd irengineer
 flutter analyze
-flutter test
+flutter test test/widgets/          # 图表交互 widget 测试 + golden 截图
+flutter test                        # 全量（Linux 上 sherpa_test 3 例跳过）
+flutter build linux --debug         # 首次需系统依赖，见 .cursor/install.sh
 ```
 
 Golden 样本位于仓库根目录 `data/`（Garage 61 导出 CSV）。
@@ -138,21 +140,43 @@ IrSdkClient（worker Isolate 60Hz 轮询）→ LapBuffer 累积样本
 
 ### Cloud Agent / Linux 验证
 
-供 Cursor Cloud Agent 或维护者在 Linux 上目视验收复盘 UI（F1 黄金路径）：
+环境由 `.cursor/environment.json` 在 Agent 启动时执行 `.cursor/install.sh`（安装 GTK / clang / ninja 等 Linux 构建依赖）。
 
-1. 在仓库根目录准备 `data/` 样本 CSV（Garage 61 导出，与 golden 测试相同）。
-2. 设置环境变量（逗号分隔绝对路径）后启动应用，启动时自动导入：
+#### 1. 自动化测试（推荐，无需 GUI）
 
 ```bash
-export IRENGINEER_FIXTURE_PATHS="/abs/path/ref.csv,/abs/path/cand.csv"
-# 可选：显式指定仓库根
-export IRENGINEER_REPO_ROOT=/abs/path/to/goirengineer
-xvfb-run -a flutter run -d linux
+cd irengineer
+flutter test test/widgets/    # 图表 highlight 对齐、golden 截图
+flutter test test/domain/ test/features/ test/platform/ \
+  test/services/coach_loop_test.dart test/widget_test.dart
 ```
 
-3. 进入 **复盘** Tab：确认圈列表、选参考/对比圈、点击分析。
-4. 验收清单：弯道表行数 > 0、总 Δ 有数值、无 error banner。
-5. **练车** Tab 应显示「仅 Windows」说明；**设置** 页无 TTS 安装向导。
+#### 2. 实机 GUI 验收（Cloud Agent VM，`DISPLAY=:1`）
+
+1. 在仓库根目录准备 `data/` 样本 CSV（Garage 61 导出，与 golden 测试相同）。
+2. 构建并启动（推荐直接运行 bundle，避免 `flutter run` 在 tmux 中偶发命令截断）：
+
+```bash
+export DISPLAY=:1
+export PATH="/home/ubuntu/flutter/bin:$PATH"
+export LIBRARY_PATH="/usr/lib/gcc/x86_64-linux-gnu/13:${LIBRARY_PATH:-}"
+export CPLUS_INCLUDE_PATH="/usr/include/c++/13:/usr/include/x86_64-linux-gnu/c++/13"
+export IRENGINEER_REPO_ROOT=/abs/path/to/irengineer
+export IRENGINEER_FIXTURE_PATHS="/abs/path/ref.csv,/abs/path/cand.csv"
+
+cd irengineer
+flutter build linux --debug
+./build/linux/x64/debug/bundle/irengineer
+```
+
+启动后自动导入 `IRENGINEER_FIXTURE_PATHS` 中的 CSV（参考圈 index 0、对比圈 index 1）。
+
+3. 进入 **复盘** Tab → 点击 **分析**。
+4. 验收清单：
+   - 悬停图表：tooltip 与琥珀色竖线同步
+   - 点击 / 横向拖拽：竖线与 tooltip 数据点对齐，各图表同步
+   - 弯道表行数 > 0、总 Δ 有数值、无 error banner
+5. **练车** Tab 应显示「仅 Windows」说明。
 
 Debug 构建下，设置页 **Agent 样本数据** 可手动「加载默认样本」（从 `data/` 查找），无需文件对话框。
 
