@@ -8,7 +8,7 @@ iREngineer 是面向 iRacing 的 **Windows 桌面 Flutter 应用**（`irengineer
 
 ### 环境前提
 
-- Flutter stable 安装在 `/home/ubuntu/flutter`（已加入 `PATH`）
+- Flutter stable 由 `.cursor/install.sh` 安装到 `/home/ubuntu/flutter`（可通过 `FLUTTER_ROOT` 覆盖；脚本会写入 `PATH`）
 - Linux 构建依赖由 `.cursor/install.sh` 安装（`.cursor/environment.json` 在 Agent 启动时自动执行）
 - Cloud Agent VM 自带图形显示（`DISPLAY=:1`），无需 `xvfb-run`
 - 样本 CSV 位于仓库根目录 `data/`（Laguna Seca F4 圈速）
