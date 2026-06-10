@@ -1,0 +1,3 @@
+Lap was {{printf "%.2f" .LapDeltaS}} seconds slower than reference.
+{{range $i, $c := .TopCorners}}Turn {{$c.CornerIdx}} lost {{printf "%.2f" $c.DeltaS}} seconds, {{adviceText $c.AdviceKey}}.
+{{end}}Priority next lap: turn {{.PriorityCorner}}.

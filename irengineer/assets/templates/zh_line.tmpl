@@ -1,0 +1,3 @@
+本圈比参考圈慢 {{printf "%.2f" .LapDeltaS}} 秒。
+{{range $i, $c := .TopCorners}}第 {{$c.CornerIdx}} 弯损失 {{printf "%.2f" $c.DeltaS}} 秒，{{adviceText $c.AdviceKey}}。
+{{end}}下一圈优先改进第 {{.PriorityCorner}} 弯。

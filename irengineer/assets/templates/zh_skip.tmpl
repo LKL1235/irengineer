@@ -1,0 +1,1 @@
+{{if eq .SkipReason "track_mismatch"}}参考圈与当前赛道不匹配，请更换 CSV。{{else if eq .SkipReason "invalid_lap_time"}}上一圈无效，已跳过分析。{{else if eq .SkipReason "too_few_samples"}}样本不足，已跳过分析。{{else if eq .SkipReason "pit_stop"}}进站圈已跳过。{{else if eq .SkipReason "short_lap"}}圈长过短，已跳过分析。{{else}}本圈已跳过分析。{{end}}

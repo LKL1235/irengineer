@@ -1,0 +1,21 @@
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+*.iml
+.idea/
+*.iml
+irengineer.iml
+
+# Local secrets and user config (settings.json lives under %LocalAppData%/iracing-coach/)
+.env
+.env.*
+settings.json
+**/settings.local.json
+
+# Sherpa TTS model vocabulary (installed via setup wizard, not source)
+tokens.txt
+

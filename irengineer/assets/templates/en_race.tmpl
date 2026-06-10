@@ -1,0 +1,3 @@
+Race: you P{{.Race.MyPosition}}, car ahead P{{.Race.AheadPosition}}.
+Your last lap {{printf "%.1f" .Race.MyLapTimeSec}} seconds, ahead {{printf "%.1f" .Race.AheadLapTimeSec}} seconds, {{if gt .Race.PaceDeltaSec 0.0}}slower by {{printf "%.1f" .Race.PaceDeltaSec}}{{else}}pace matched or faster, keep pressure{{end}}.
+{{.Race.CatchUpMessage}}
