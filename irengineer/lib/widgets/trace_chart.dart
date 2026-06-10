@@ -2,8 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../domain/delta/engine.dart';
-
-typedef PctCallback = void Function(double pct);
+import 'chart_touch.dart';
 
 class TraceChart extends StatelessWidget {
   const TraceChart({
@@ -86,13 +85,8 @@ class TraceChart extends StatelessWidget {
                   ),
                   borderData: FlBorderData(show: true),
                   lineTouchData: LineTouchData(
-                    touchCallback: (event, response) {
-                      if (onHighlight == null || response?.lineBarSpots == null) {
-                        return;
-                      }
-                      final spot = response!.lineBarSpots!.first;
-                      onHighlight!(spot.x / 100);
-                    },
+                    touchCallback: (event, response) =>
+                        handleLineChartHighlight(event, response, onHighlight),
                   ),
                   extraLinesData: ExtraLinesData(
                     verticalLines: [
