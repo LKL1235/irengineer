@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../domain/delta/engine.dart';
+import 'chart_touch.dart';
 
 class DeltaChart extends StatelessWidget {
   const DeltaChart({
@@ -64,7 +65,7 @@ class DeltaChart extends StatelessWidget {
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        reservedSize: 40,
+                        reservedSize: 36,
                         getTitlesWidget: (v, _) => Text(
                           v.toStringAsFixed(2),
                           style: const TextStyle(fontSize: 10),
@@ -76,12 +77,8 @@ class DeltaChart extends StatelessWidget {
                   ),
                   borderData: FlBorderData(show: true),
                   lineTouchData: LineTouchData(
-                    touchCallback: (event, response) {
-                      if (onHighlight == null || response?.lineBarSpots == null) {
-                        return;
-                      }
-                      onHighlight!(response!.lineBarSpots!.first.x / 100);
-                    },
+                    touchCallback: (event, response) =>
+                        handleLineChartHighlight(event, response, onHighlight),
                   ),
                   extraLinesData: ExtraLinesData(
                     horizontalLines: [

@@ -87,14 +87,7 @@ void main() {
     );
   });
 
-  testWidgets('golden: tap at plot center misaligns highlight vs 50%', (tester) async {
-    const panelWidth = 640.0;
-    // Card padding (8) + left axis reserved (36) ≈ plot left edge
-    const plotLeft = 8.0 + 36.0;
-    const plotRight = 8.0;
-    final plotWidth = panelWidth - plotLeft - plotRight;
-    final plotCenterX = plotLeft + plotWidth / 2;
-
+  testWidgets('tap on chart maps highlight to nearest lap pct', (tester) async {
     double? tappedPct;
     await tester.pumpWidget(
       _panel(
@@ -105,17 +98,22 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Tap vertically on the speed chart row (~y=60 from panel top)
-    await tester.tapAt(Offset(plotCenterX, 60));
+    final chart = tester.widgetList<LineChart>(find.byType(LineChart)).first;
+    final chartBox = tester.renderObject(find.byWidget(chart)) as RenderBox;
+    const leftAxisReserved = 36.0;
+    final plotCenter = chartBox.localToGlobal(
+      Offset(
+        leftAxisReserved + (chartBox.size.width - leftAxisReserved) / 2,
+        chartBox.size.height / 2,
+      ),
+    );
+
+    await tester.tapAt(plotCenter);
     await tester.pumpAndSettle();
 
     expect(tappedPct, isNotNull);
-    // Correct mapping would be ~0.5; outer GestureDetector uses x/width → ~0.57
-    expect(
-      tappedPct!,
-      greaterThan(0.52),
-      reason: 'tap at plot center should map to ~0.5 pct, not ${tappedPct!.toStringAsFixed(3)}',
-    );
+    expect(tappedPct!, closeTo(0.5, 0.02));
+    expect(tappedPct!, isNot(closeTo(0.53, 0.01)));
 
     await tester.pumpWidget(
       _panel(analysis: analysis, highlightedPct: tappedPct!),
@@ -124,14 +122,11 @@ void main() {
 
     await expectLater(
       find.byType(ReviewChartsPanel),
-      matchesGoldenFile('goldens/review_charts_tap_center_offset.png'),
+      matchesGoldenFile('goldens/review_charts_tap_center_aligned.png'),
     );
   });
 
-  testWidgets('tap uses full panel width ignoring chart axis inset', (tester) async {
-    const panelWidth = 640.0;
-    const plotLeft = 8.0 + 36.0;
-
+  testWidgets('tap on corner table does not move highlight', (tester) async {
     double? tappedPct;
     await tester.pumpWidget(
       _panel(
@@ -141,12 +136,16 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tapAt(const Offset(plotLeft, 60));
+    final cornerTable = find.byType(DataTable);
+    expect(cornerTable, findsOneWidget);
+
+    final tableBox =
+        tester.renderObject(cornerTable.first) as RenderBox;
+    await tester.tapAt(
+      tableBox.localToGlobal(Offset(tableBox.size.width / 2, 20)),
+    );
     await tester.pump();
 
-    expect(tappedPct, isNotNull);
-    // At plot start (0%) gesture reports ~plotLeft/width instead of 0
-    expect(tappedPct!, greaterThan(0.05));
-    expect(tappedPct!, lessThan(0.12));
+    expect(tappedPct, isNull);
   });
 }
