@@ -40,7 +40,7 @@ depth: deep
 ## Key Technical Decisions
 
 **KTD-1: Go 独立模块 `iracing-coach/`**  
-与 Python 实验目录隔离；单 `go.mod`；产出 `coach.exe`。Rationale: 用户目标为本地二进制、低内存常驻；仓库无 Go 先例，独立根目录最清晰（见 repo research）。
+与 Python 实验目录隔离；单 `go.mod`；产出 `iREngineer`。Rationale: 用户目标为本地二进制、低内存常驻；仓库无 Go 先例，独立根目录最清晰（见 repo research）。
 
 **KTD-2: 自研 irsdk 薄封装，不依赖 goirsdk**  
 对照 [vipoo/irsdk `irsdk_defines.h`](https://github.com/vipoo/irsdk/blob/master/irsdk_defines.h) 与 pyirsdk 行为实现：`OpenFileMapping`、header/varHeader 解析、buffer 轮转、`GetVar`、session YAML。Rationale: 协议稳定、可控、与 delta 同 repo；只读 live + 可选 `.ibt` 回放留 v1.1。
@@ -145,7 +145,7 @@ iracing-coach/
 
 ### U1. 项目脚手架与配置
 
-**Goal:** 可编译的空 `coach.exe`，加载 YAML/JSON 配置。  
+**Goal:** 可编译的空 `iREngineer`，加载 YAML/JSON 配置。  
 **Requirements:** 支撑 R11–R15 配置项。  
 **Dependencies:** 无。  
 **Files:** `iracing-coach/go.mod`, `iracing-coach/cmd/coach/main.go`, `iracing-coach/internal/config/config.go`, `iracing-coach/README.md`  
@@ -290,7 +290,7 @@ iracing-coach/
 
 **Deferred to Follow-Up Work（计划内序号，非 v1）**
 
-- U9 之后：`coach.exe` Windows 服务安装脚本、系统托盘 UI、按赛道 profile 多 CSV 自动切换
+- U9 之后：`iREngineer` Windows 服务安装脚本、系统托盘 UI、按赛道 profile 多 CSV 自动切换
 
 **Outside this product's identity**
 

@@ -10,7 +10,7 @@ build/
 *.iml
 irengineer.iml
 
-# Local secrets and user config (settings.json lives under %LocalAppData%/iracing-coach/)
+# Local secrets and user config (settings.json lives under %LocalAppData%/irengineer/)
 .env
 .env.*
 settings.json

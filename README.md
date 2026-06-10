@@ -2,13 +2,12 @@
 
 面向 iRacing 的桌面教练应用：练车时实时语音反馈，复盘时本地完成 Garage 61 式双圈分析，无需上传等待。
 
-Windows 单进程 Flutter 应用，**纯 Dart 实现**，运行时零 Go 依赖。
+Windows 单进程 Flutter 应用，**纯 Dart 实现**。
 
 ## 仓库结构
 
 ```text
-irengineer/          # 主应用（Flutter Desktop，当前开发重点）
-iracing-coach/       # 遗留 Go 实现（只读参照与 golden 对照，不发布 coach.exe）
+irengineer/          # 主应用（Flutter Desktop）
 data/                # 验收用 Garage 61 CSV 样本
 docs/                # 计划、方案与历史记录
 ```
@@ -27,7 +26,7 @@ docs/                # 计划、方案与历史记录
 
 练车模式的规则教练不依赖网络。启用**深度解释**时，应用会调用 OpenAI 兼容接口（`POST {base_url}/chat/completions`），并将 LLM 输出与 `CoachReport` 数字做校验。
 
-在 `%LocalAppData%/iracing-coach/settings.json` 中设置（设置页暂无表单，需手动编辑）：
+在 `%LocalAppData%/irengineer/settings.json` 中设置（设置页暂无表单，需手动编辑）：
 
 ```json
 {

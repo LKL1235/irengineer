@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 import '../paths.dart';
 import 'defaults.dart';
 
-/// Coach runtime preferences persisted as JSON (field names match Go `settings.Settings`).
+/// Coach runtime preferences persisted as JSON.
 class AppSettings {
   AppSettings({
     this.referenceCsv = '',

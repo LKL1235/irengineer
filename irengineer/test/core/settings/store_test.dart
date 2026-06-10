@@ -8,10 +8,10 @@ import 'package:irengineer/core/settings/validate.dart';
 import 'package:path/path.dart' as p;
 
 void main() {
-  test('settings file path uses iracing-coach data root', () {
+  test('settings file path uses irengineer data root', () {
     final root = dataRoot();
     expect(settingsFilePath(), p.join(root, 'settings.json'));
-    expect(root.replaceAll('\\', '/').endsWith('iracing-coach'), isTrue);
+    expect(root.replaceAll('\\', '/').endsWith('irengineer'), isTrue);
   });
 
   test('loadOrDefault missing file returns defaults', () async {

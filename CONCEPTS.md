@@ -52,11 +52,11 @@ Deferred optional long-running local service that keeps a TTS model warm in memo
 
 ## SettingsStore
 
-Machine-managed JSON persistence for coach preferences at `%LocalAppData%/iracing-coach/settings.json`. Replaces user-edited YAML; written only by the settings UI or install actions.
+Machine-managed JSON persistence for coach preferences at `%LocalAppData%/irengineer/settings.json`. Replaces user-edited YAML; written only by the settings UI or install actions.
 
 ## VoiceModelDir
 
-Default TTS asset root beside `coach.exe` at `voice_model/` (`bin/` for Sherpa runtime, `models/` for Piper-compatible ONNX). Override via `tts_root_dir` in settings. Legacy installs may still use `%LocalAppData%/iracing-coach/tts/`. Model choice (`tts_model_choice`, e.g. `huayan-medium`, `xiao_ya-medium`) is selected in the settings UI before install.
+Default TTS asset root beside the application executable at `voice_model/` (`bin/` for Sherpa runtime, `models/` for Piper-compatible ONNX). Override via `tts_root_dir` in settings. Installs may also use `%LocalAppData%/irengineer/tts/`. Model choice (`tts_model_choice`, e.g. `huayan-medium`, `xiao_ya-medium`) is selected in the settings UI before install.
 
 ## SetupWizard
 

@@ -9,18 +9,18 @@ supersedes_tts: piper-cli-embed
 
 ## Summary
 
-将 `iracing-coach` 的语音合成从已归档的 Piper 预编译二进制方案，迁移为 **Sherpa-ONNX 离线 TTS CLI + Piper 兼容神经语音模型** 的外部依赖模式。不把模型或推理运行时打进 `coach.exe`；通过配置目录或 PATH 引用本地工具，并由未来 UI 提供一键下载安装。优先级：**中文自然度 > 安装简单 > 首句延迟**。
+将 `iracing-coach` 的语音合成从已归档的 Piper 预编译二进制方案，迁移为 **Sherpa-ONNX 离线 TTS CLI + Piper 兼容神经语音模型** 的外部依赖模式。不把模型或推理运行时打进 `iREngineer`；通过配置目录或 PATH 引用本地工具，并由未来 UI 提供一键下载安装。优先级：**中文自然度 > 安装简单 > 首句延迟**。
 
 ## Problem Frame
 
-v1 计划选用 Piper CLI + ONNX 模型（R11）。原 `rhasspy/piper` 仓库已 archived，继任者 [OHF-Voice/piper1-gpl](https://github.com/OHF-Voice/piper1-gpl) 为 **Python 包**（`pip install piper-tts`），无官方 Windows 独立二进制。将 Python 运行时与模型嵌入 `coach.exe` 会导致体积大、冷启动慢、常驻内存高，与「性能优先、不影响 iRacing」冲突。需要新的默认可持续 TTS 路径，同时保留神经语音质量以满足圈末教练体验。
+v1 计划选用 Piper CLI + ONNX 模型（R11）。原 `rhasspy/piper` 仓库已 archived，继任者 [OHF-Voice/piper1-gpl](https://github.com/OHF-Voice/piper1-gpl) 为 **Python 包**（`pip install piper-tts`），无官方 Windows 独立二进制。将 Python 运行时与模型嵌入 `iREngineer` 会导致体积大、冷启动慢、常驻内存高，与「性能优先、不影响 iRacing」冲突。需要新的默认可持续 TTS 路径，同时保留神经语音质量以满足圈末教练体验。
 
 ---
 
 ## Key Decisions
 
-- **默认引擎 = Sherpa-ONNX 离线 TTS（CLI）** — 使用预编译 `sherpa-onnx-offline-tts`（Windows x64 release），模型采用 HuggingFace 上 **Piper 兼容** 中文 ONNX（如 `vits-piper-zh_CN-huayan-medium`）。推理在**子进程**中完成，内存与 `coach.exe` 隔离。
-- **不嵌入 coach 构建产物** — `coach.exe` 不包含 ONNX 模型、不包含 Python、不包含 Sherpa 运行时；首次使用通过 UI/脚本下载到用户缓存目录或 `iracing-coach/tools/`。
+- **默认引擎 = Sherpa-ONNX 离线 TTS（CLI）** — 使用预编译 `sherpa-onnx-offline-tts`（Windows x64 release），模型采用 HuggingFace 上 **Piper 兼容** 中文 ONNX（如 `vits-piper-zh_CN-huayan-medium`）。推理在**子进程**中完成，内存与 `iREngineer` 隔离。
+- **不嵌入 coach 构建产物** — `iREngineer` 不包含 ONNX 模型、不包含 Python、不包含 Sherpa 运行时；首次使用通过 UI/脚本下载到用户缓存目录或 `%LocalAppData%/irengineer/tools/`。
 - **保留 `Speaker` 抽象** — 教练主流程只依赖「文本 → 可播放音频」；引擎可替换，队列与打断语义不变。
 - **降级档 = Windows SAPI（可选配置）** — 仅用于演示、应急或用户主动选择；**不作为默认**，因中文自然度不足。
 - **常驻 Sidecar 推迟** — 首句延迟优先级最低；仅当实测无法满足 R12（p90 开播 ≤10s）时再增加可选 `coach-tts` 常驻服务。
@@ -41,7 +41,7 @@ v1 计划选用 Piper CLI + ONNX 模型（R11）。原 `rhasspy/piper` 仓库已
 ## Actors
 
 - **A1. 车手** — 听到圈末中文教练语音；期望发音自然、可听懂弯号与秒数。
-- **A2. 教练系统（coach.exe）** — 渲染模板文本，调用 TTS 后端，管理播报队列与打断。
+- **A2. 教练系统（iREngineer）** — 渲染模板文本，调用 TTS 后端，管理播报队列与打断。
 - **A3. 安装器 / 设置 UI（后续）** — 检测依赖、下载资产、写入 `coach.yaml` 中的 TTS 路径。
 
 ---
@@ -51,7 +51,7 @@ v1 计划选用 Piper CLI + ONNX 模型（R11）。原 `rhasspy/piper` 仓库已
 **引擎与依赖**
 
 - T1. 系统默认使用 Sherpa-ONNX 离线 TTS 作为本地合成后端；不要求 GPU。
-- T2. 合成在独立子进程中执行，`coach.exe` 进程不加载 ONNX 模型权重。
+- T2. 合成在独立子进程中执行，`iREngineer` 进程不加载 ONNX 模型权重。
 - T3. 配置项至少包含：`tts_engine`（默认 `sherpa`）、`tts_bin`、`tts_model`、`tts_data_dir`（espeak-ng 数据目录）；可选 `tts_fallback_engine`。
 - T4. 启动时校验 TTS 依赖；缺失时给出可操作错误（含「请运行安装」或 UI 入口），而非静默失败。
 - T5. 允许用户通过配置覆盖模型路径以更换音色，但产品默认提供中文 medium 模型的一键安装包。
@@ -65,7 +65,7 @@ v1 计划选用 Piper CLI + ONNX 模型（R11）。原 `rhasspy/piper` 仓库已
 
 **安装与分发**
 
-- T10. 不提供「单文件 coach.exe 内含语音模型」作为默认分发形态。
+- T10. 不提供「单文件 iREngineer 内含语音模型」作为默认分发形态。
 - T11. 安装流程须可脚本化或 UI 一键完成：下载 Sherpa Windows 二进制、默认中文模型、`espeak-ng-data`，并写入配置。
 - T12. 版本锁定：安装包记录 Sherpa release 版本与模型 ID，升级由 UI/文档引导，避免静默漂移。
 
@@ -117,7 +117,7 @@ v1 计划选用 Piper CLI + ONNX 模型（R11）。原 `rhasspy/piper` 仓库已
 ## Success Criteria
 
 - 默认安装路径下，中文圈末播报被评价为「可听懂且不像系统机械音」。
-- `coach.exe` 本体体积不因 TTS 模型显著增大（模型外置）。
+- `iREngineer` 本体体积不因 TTS 模型显著增大（模型外置）。
 - 无 Python 运行时作为默认依赖。
 - p90 圈末开播延迟仍 ≤10s（标准赛道）；若达不到，Sidecar 方案进入计划而非回退 SAPI 默认。
 
