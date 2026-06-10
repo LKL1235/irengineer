@@ -19,3 +19,11 @@ settings.json
 # Sherpa TTS model vocabulary (installed via setup wizard, not source)
 tokens.txt
 
+# Flutter tool-generated Windows plugin registration (flutter pub get)
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugins.cmake
+
+# Test / tool output
+coverage/
+

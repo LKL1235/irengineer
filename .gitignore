@@ -1,2 +1,12 @@
 # Agent debug session logs
 debug-*.log
+
+# IDE / editor (user-specific)
+.vscode/
+
+# PR tooling temp files
+.pr-body-temp.md
+
+# Codegraph index (machine-local; keep ignore rules file)
+.codegraph/*
+!.codegraph/.gitignore
