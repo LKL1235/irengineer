@@ -37,7 +37,11 @@ class _IracingCoachAppState extends ConsumerState<IracingCoachApp> {
     if (paths.isEmpty) {
       return;
     }
-    await ref.read(reviewControllerProvider.notifier).importFiles(paths);
+    final review = ref.read(reviewControllerProvider.notifier);
+    await review.importFiles(paths);
+    if (autoAnalyzeFromEnv()) {
+      await review.runAnalysis();
+    }
   }
 
   List<Widget> get _pages => [

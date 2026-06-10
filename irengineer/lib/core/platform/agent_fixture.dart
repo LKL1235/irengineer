@@ -4,6 +4,10 @@ import 'package:path/path.dart' as p;
 
 const fixturePathsEnv = 'IRENGINEER_FIXTURE_PATHS';
 const repoRootEnv = 'IRENGINEER_REPO_ROOT';
+const autoAnalyzeEnv = 'IRENGINEER_AUTO_ANALYZE';
+
+/// When `1`, Cloud Agent bootstrap runs [runAnalysis] after fixture import.
+bool autoAnalyzeFromEnv() => Platform.environment[autoAnalyzeEnv] == '1';
 
 /// Parses comma-separated CSV paths from a raw env value.
 List<String> parseFixturePaths(String? raw) {
