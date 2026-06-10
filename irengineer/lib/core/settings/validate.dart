@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../platform/desktop_capabilities.dart';
 import 'store.dart';
 
 class ReadyResult {
@@ -53,6 +54,12 @@ List<String> validateTts(AppSettings cfg) {
 
 /// Whether coaching (Practice) may start.
 ReadyResult readyGate(AppSettings cfg) {
+  if (!supportsLiveCoaching) {
+    return const ReadyResult(
+      ready: false,
+      reason: 'Linux 仅支持复盘；实时练车需要 Windows 与 iRacing',
+    );
+  }
   final errs = validateForRun(cfg);
   if (errs.isNotEmpty) {
     return ReadyResult(ready: false, reason: errs.join('\n'));

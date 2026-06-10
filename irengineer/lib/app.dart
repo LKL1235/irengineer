@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/platform/agent_fixture.dart';
+import 'core/platform/desktop_capabilities.dart';
 import 'core/settings/settings_provider.dart';
+import 'features/practice/linux_practice_stub_page.dart';
 import 'features/practice/practice_page.dart';
+import 'features/review/analysis_controller.dart';
 import 'features/review/review_page.dart';
 import 'features/settings/settings_page.dart';
 import 'services/coach_provider.dart';
@@ -16,19 +20,40 @@ class IracingCoachApp extends ConsumerStatefulWidget {
 
 class _IracingCoachAppState extends ConsumerState<IracingCoachApp> {
   int _index = 0;
+  bool _fixtureBootstrapDone = false;
 
-  static const _pages = [
-    ReviewPage(),
-    PracticePage(),
-    SettingsPage(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrapAgentFixtures());
+  }
+
+  Future<void> _bootstrapAgentFixtures() async {
+    if (_fixtureBootstrapDone) {
+      return;
+    }
+    _fixtureBootstrapDone = true;
+    final paths = parseFixturePathsFromEnv();
+    if (paths.isEmpty) {
+      return;
+    }
+    await ref.read(reviewControllerProvider.notifier).importFiles(paths);
+  }
+
+  List<Widget> get _pages => [
+        const ReviewPage(),
+        supportsLiveCoaching
+            ? const PracticePage()
+            : const LinuxPracticeStubPage(),
+        const SettingsPage(),
+      ];
 
   Future<void> _onModeChanged(int i) async {
     final coach = ref.read(coachLoopProvider.notifier);
     if (i == 0) {
       // KTD-9: Review mode pauses SDK polling and cancels TTS.
       await coach.pausePractice();
-    } else if (i == 1) {
+    } else if (i == 1 && supportsLiveCoaching) {
       final gate = ref.read(readyGateProvider);
       if (gate.ready) {
         await coach.startPractice();

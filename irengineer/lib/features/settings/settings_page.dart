@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/platform/desktop_capabilities.dart';
 import '../../core/settings/settings_provider.dart';
 import '../../core/settings/validate.dart';
+import 'agent_fixture_tile.dart';
 import 'setup_wizard.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -37,10 +39,21 @@ class SettingsPage extends ConsumerWidget {
                   cfg.referenceCsv.isEmpty ? '未配置' : cfg.referenceCsv,
                 ),
               ),
-              const SetupWizard(),
+              if (supportsLiveCoaching) const SetupWizard(),
+              if (!supportsLiveCoaching)
+                const ListTile(
+                  title: Text('平台说明'),
+                  subtitle: Text(
+                    '当前平台仅支持复盘分析。实时练车、Sherpa TTS 与 iRacing SDK 仅在 Windows 可用。',
+                  ),
+                  leading: Icon(Icons.desktop_windows_outlined),
+                ),
+              const AgentFixtureTile(),
               const Divider(),
               ListTile(
-                title: const Text('练车 ReadyGate'),
+                title: Text(
+                  supportsLiveCoaching ? '练车 ReadyGate' : '练车模式',
+                ),
                 subtitle: Text(
                   gate.ready ? '就绪' : gate.reason,
                 ),

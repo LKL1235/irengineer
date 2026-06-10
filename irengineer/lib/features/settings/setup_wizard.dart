@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 
+import '../../core/platform/desktop_capabilities.dart';
 import '../../core/settings/settings_provider.dart';
 import 'tts_install_tile.dart';
 
@@ -11,6 +12,10 @@ class SetupWizard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (!supportsLiveCoaching) {
+      return const SizedBox.shrink();
+    }
+
     final settings = ref.watch(settingsProvider).valueOrNull;
     final gate = ref.watch(readyGateProvider);
 

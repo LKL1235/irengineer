@@ -61,3 +61,11 @@ Default TTS asset root beside the application executable at `voice_model/` (`bin
 ## SetupWizard
 
 First-run flow in the settings UI: apply built-in defaults, then require reference CSV selection and one-click TTS engine install before coaching starts.
+
+## LinuxPracticeStub
+
+Practice tab behavior on Linux desktop builds: the tab remains in navigation for UI parity with Windows, but the page shows that live coaching requires Windows and iRacing. No SDK polling, TTS, or ReadyGate blocking on Linux.
+
+## AgentFixtureLoad
+
+Deterministic CSV import path for Cloud Agent and CI on Linux, bypassing the native file dialog. Loads known samples from the repo `data/` directory via environment variable, launch argument, or maintainer-only entry so the review golden path is reproducible without manual file picking.
