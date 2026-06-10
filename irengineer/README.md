@@ -1,15 +1,23 @@
 # irengineer
 
-Windows 桌面端 iRacing 教练与本地复盘工具。单进程 Flutter 应用，算法与 UI 均为 **纯 Dart**，通过 `package:win32` 直接读取 iRacing 共享内存。
+Windows / Linux 桌面端 iRacing 教练与本地复盘工具。单进程 Flutter 应用，复盘算法与 UI 为 **纯 Dart**；Windows 练车模式通过 `package:win32` 读取 iRacing 共享内存。
 
 仓库：[https://github.com/LKL1235/irengineer](https://github.com/LKL1235/irengineer)
 
 ## 环境要求
 
+### Windows（练车 + 复盘）
+
 - Flutter stable（已启用 Windows 桌面）
 - Windows 10/11
 - iRacing（练车模式实机采集）
 - `tar` 在 PATH 中（Sherpa TTS 一键安装）
+
+### Linux（复盘 + Cloud Agent 验证）
+
+- Flutter stable（已启用 Linux 桌面）
+- 构建依赖（Ubuntu 示例）：`clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev`
+- 无 iRacing / Sherpa TTS / 系统托盘；练车 Tab 为占位说明页
 
 ## 开发与测试
 
@@ -17,6 +25,14 @@ Windows 桌面端 iRacing 教练与本地复盘工具。单进程 Flutter 应用
 cd irengineer
 flutter pub get
 flutter run -d windows
+```
+
+Linux 复盘：
+
+```bash
+flutter run -d linux
+# 无物理显示器时（Cloud Agent）：
+xvfb-run -a flutter run -d linux
 ```
 
 ```bash
@@ -43,8 +59,10 @@ dart run tool/bundle_release.dart
 
 ```text
 lib/
-├── main.dart / app.dart          # 入口、三 Tab 导航、模式切换生命周期
-├── core/                         # 路径、settings.json 读写与 ReadyGate
+├── main.dart                     # 平台入口（deferred → main_windows / main_linux）
+├── main_windows.dart / main_linux.dart
+├── app.dart                      # 三 Tab 导航、模式切换、Agent fixture 引导
+├── core/                         # 路径、settings、desktop_capabilities、agent_fixture
 ├── domain/                       # 纯 Dart 领域算法（禁止 import flutter）
 │   ├── lap/                      # LapSample / LapSeries
 │   ├── ref/                      # CSV 加载、圈时推导、赛道指纹校验
@@ -88,7 +106,8 @@ IrSdkClient（worker Isolate 60Hz 轮询）→ LapBuffer 累积样本
 
 - **复盘**：不依赖 TTS 安装，ReadyGate 恒为可用。
 - **练车**：需配置参考圈 CSV 且 TTS 就绪；切回复盘时暂停 SDK 轮询并取消当前播报。
-- **托盘**：点 X 隐藏到托盘；托盘退出时停止教练循环并释放 TTS 进程。
+- **托盘**（仅 Windows）：点 X 隐藏到托盘；托盘退出时停止教练循环并释放 TTS 进程。
+- **Linux**：练车 Tab 为 `LinuxPracticeStub`；复盘与 Windows 同结构。
 
 ### 功能实现状态
 
@@ -109,10 +128,33 @@ IrSdkClient（worker Isolate 60Hz 轮询）→ LapBuffer 累积样本
 
 ### 用户数据路径
 
-设置与 TTS 资源保存在 `%LocalAppData%/irengineer/`：
+- Windows：`%LocalAppData%/irengineer/`
+- Linux：`~/.config/irengineer/`
+
+目录内容：
 
 - `settings.json` — 参考圈路径、TTS 配置、云端 API 等
-- `tts/` — Sherpa 运行时与语音模型
+- `tts/` — Sherpa 运行时与语音模型（仅 Windows 练车）
+
+### Cloud Agent / Linux 验证
+
+供 Cursor Cloud Agent 或维护者在 Linux 上目视验收复盘 UI（F1 黄金路径）：
+
+1. 在仓库根目录准备 `data/` 样本 CSV（Garage 61 导出，与 golden 测试相同）。
+2. 设置环境变量（逗号分隔绝对路径）后启动应用，启动时自动导入：
+
+```bash
+export IRENGINEER_FIXTURE_PATHS="/abs/path/ref.csv,/abs/path/cand.csv"
+# 可选：显式指定仓库根
+export IRENGINEER_REPO_ROOT=/abs/path/to/goirengineer
+xvfb-run -a flutter run -d linux
+```
+
+3. 进入 **复盘** Tab：确认圈列表、选参考/对比圈、点击分析。
+4. 验收清单：弯道表行数 > 0、总 Δ 有数值、无 error banner。
+5. **练车** Tab 应显示「仅 Windows」说明；**设置** 页无 TTS 安装向导。
+
+Debug 构建下，设置页 **Agent 样本数据** 可手动「加载默认样本」（从 `data/` 查找），无需文件对话框。
 
 ### 测试策略
 
