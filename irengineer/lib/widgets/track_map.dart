@@ -11,6 +11,7 @@ class TrackMap extends StatelessWidget {
     required this.candLap,
     required this.highlightedPct,
     this.onHighlight,
+    this.expand = false,
   });
 
   final ImportedLap? refLap;
@@ -18,17 +19,23 @@ class TrackMap extends StatelessWidget {
   final double highlightedPct;
   final ValueChanged<double>? onHighlight;
 
+  /// When true, fills the parent height instead of a fixed 220px tile.
+  final bool expand;
+
   @override
   Widget build(BuildContext context) {
     final ref = refLap;
     final cand = candLap;
     if (ref == null || !ref.hasGps) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            ref == null ? '选择圈速后显示地图' : 'CSV 无 GPS 列，地图已隐藏',
-            style: Theme.of(context).textTheme.bodyMedium,
+      return _mapCard(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              ref == null ? '选择圈速后显示地图' : 'CSV 无 GPS 列，地图已隐藏',
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
       );
@@ -40,10 +47,12 @@ class TrackMap extends StatelessWidget {
         : <LatLng>[];
     final all = [...refPoints, ...candPoints];
     if (all.isEmpty) {
-      return const Card(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('无有效 GPS 坐标'),
+      return _mapCard(
+        child: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('无有效 GPS 坐标'),
+          ),
         ),
       );
     }
@@ -52,66 +61,73 @@ class TrackMap extends StatelessWidget {
     final center = bounds.center;
     final marker = _interpPoint(ref, highlightedPct);
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: SizedBox(
-        height: 220,
-        child: FlutterMap(
-          options: MapOptions(
-            initialCenter: center,
-            initialZoom: 15,
-            interactionOptions: const InteractionOptions(
-              flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-            ),
-            onTap: (tapPos, latLng) {
-              final pct = _pctFromTap(ref, latLng);
-              if (pct != null) {
-                onHighlight?.call(pct);
-              }
-            },
+    return _mapCard(
+      child: FlutterMap(
+        options: MapOptions(
+          initialCenter: center,
+          initialZoom: 15,
+          interactionOptions: const InteractionOptions(
+            flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
           ),
-          children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.iracingcoach.app',
-            ),
-            if (candPoints.isNotEmpty)
-              PolylineLayer(
-                polylines: [
-                  Polyline(
-                    points: candPoints,
-                    color: Colors.orange.withValues(alpha: 0.85),
-                    strokeWidth: 3,
-                  ),
-                ],
-              ),
+          onTap: (tapPos, latLng) {
+            final pct = _pctFromTap(ref, latLng);
+            if (pct != null) {
+              onHighlight?.call(pct);
+            }
+          },
+        ),
+        children: [
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.iracingcoach.app',
+          ),
+          if (candPoints.isNotEmpty)
             PolylineLayer(
               polylines: [
                 Polyline(
-                  points: refPoints,
-                  color: Colors.blue.withValues(alpha: 0.9),
+                  points: candPoints,
+                  color: Colors.orange.withValues(alpha: 0.85),
                   strokeWidth: 3,
                 ),
               ],
             ),
-            if (marker != null)
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: marker,
-                    width: 16,
-                    height: 16,
-                    child: const Icon(
-                      Icons.place,
-                      color: Colors.amber,
-                      size: 20,
-                    ),
-                  ),
-                ],
+          PolylineLayer(
+            polylines: [
+              Polyline(
+                points: refPoints,
+                color: Colors.blue.withValues(alpha: 0.9),
+                strokeWidth: 3,
               ),
-          ],
-        ),
+            ],
+          ),
+          if (marker != null)
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: marker,
+                  width: 16,
+                  height: 16,
+                  child: const Icon(
+                    Icons.place,
+                    color: Colors.amber,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
+        ],
       ),
+    );
+  }
+
+  Widget _mapCard({required Widget child}) {
+    final content = expand
+        ? SizedBox.expand(child: child)
+        : SizedBox(height: 220, child: child);
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.zero,
+      child: content,
     );
   }
 

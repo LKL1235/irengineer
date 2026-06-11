@@ -104,7 +104,7 @@ class ReviewPage extends ConsumerWidget {
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         )
-                      : SingleChildScrollView(
+                      : Padding(
                           padding: const EdgeInsets.all(12),
                           child: ReviewChartsPanel(
                             analysis: analysis,

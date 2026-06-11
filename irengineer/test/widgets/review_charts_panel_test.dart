@@ -32,17 +32,15 @@ Widget _panel({
   return MaterialApp(
     home: Scaffold(
       body: SizedBox(
-        width: 640,
+        width: 1200,
         height: 900,
-        child: SingleChildScrollView(
-          child: ReviewChartsPanel(
-            analysis: analysis,
-            refLap: null,
-            candLap: null,
-            highlightedPct: highlightedPct,
-            onHighlight: onHighlight ?? (_) {},
-            onCornerTap: (_) {},
-          ),
+        child: ReviewChartsPanel(
+          analysis: analysis,
+          refLap: null,
+          candLap: null,
+          highlightedPct: highlightedPct,
+          onHighlight: onHighlight ?? (_) {},
+          onCornerTap: (_) {},
         ),
       ),
     ),
